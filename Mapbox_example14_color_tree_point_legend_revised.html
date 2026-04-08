@@ -1,0 +1,176 @@
+<html>
+
+<head>
+<meta charset="utf-8" />
+<title>Mapbox Example 14 - Legend</title>
+
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
+
+<style>
+
+    /*  Legend Style Sheet  */
+    .legend {
+        background-color: #fff;
+        border-radius: 3px;
+        bottom: 30px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        font:
+            12px/20px 'Helvetica Neue',
+            Arial,
+            Helvetica,
+            sans-serif;
+        padding: 10px;
+        position: absolute;
+        left: 10px;
+        z-index: 1;
+    }
+    .legend h4 {
+        margin: 0 0 10px;
+    }
+
+    .legend div span {
+        border-radius: 50%;
+        display: inline-block;
+        height: 10px;
+        margin-right: 5px;
+        width: 10px;
+    }
+
+    /* Map overlay style sheet  */
+
+    .map-overlay {
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    position: absolute;
+    left: 0px;
+    width: 380px;
+    min-width: 380px;
+    top: 0;
+    right: 0;
+    padding: 10px;
+    }
+    .map-overlay .map-overlay-inner {
+        background-color: #fff;
+        box-shadow:0 1px 2px rgba(0, 0, 0, 0.20);
+        border-radius: 3px;
+        padding: 10px;
+        margin-bottom: 10px;
+         ;
+    }
+    .map-overlay h2 {
+        line-height: 24px;
+        display: block;
+        margin: 0 0 10px;
+    }
+    .map-overlay p.credit {
+       margin: 0;
+       padding: 0;
+    }
+
+    /*  Body & Map Style Sheet  */
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; };
+
+</style>
+
+</head>
+
+<body>
+<div id="map"></div>
+
+<div class='map-overlay'> 
+    <div class='map-overlay-inner'>
+        <h2> Denver Tree Inventory</h2>
+        <p class="credit"> This map visualizes the top 10 tree genera in Denver including Maple, Honeylocust, Crabapple, Oak, Elm, Pine, Ash, Hackberry and Spruce. It is created using the <a href="https://data.colorado.gov/Environment/Map-of-Tree-Inventory-Denver/hzmx-2dfk"> Denver Tree Inventory data </a>. </p>
+        
+    </div>
+</div>
+
+<div id="treecolor-legend" class="legend" style="display: none">
+    <h4>Tree Genus</h4>
+    <div><span style="background-color: #c76712"></span>Maple</div>
+    <div><span style="background-color: #f7d40e"></span>Honeylocust</div>
+    <div><span style="background-color: #bdf70e"></span>Crabapple</div>
+    <div><span style="background-color: #1d6b0a"></span>Oak</div>
+    <div><span style="background-color: #46291d"></span>Elm</div>
+    <div><span style="background-color: #6a8947"></span>Pine</div>
+    <div><span style="background-color: #8f8673"></span>Ash</div>
+    <div><span style="background-color: #463677"></span>Hackberry</div>
+    <div><span style="background-color: #4079a0"></span>Spruce</div>
+    <div><span style="background-color: #ffff99"></span>Others</div>
+</div>
+
+<script>
+
+    //Put your mapbox access token here
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZmFyYWRheWF3YXkiLCJhIjoiY21sc2IxcmN0MDRlZzNmb2prZ2h0cGp3dCJ9.LEXdABzzMej8uZL-najTJg';  
+
+        // Load a new map in the 'map' HTML div
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/faradayaway/cmnmeeyq4005d01sgg5993jr8', // Put your mapbox style ID here
+            center: [-104.951046, 39.732470], // starting position [lng, lat]
+            zoom: 12 // starting zoom
+        });
+
+
+        // When loading the map
+        map.on('load', function() {
+
+
+            // Add a TREE POINT layer to the map 
+            map.addLayer({
+                'id':'denver_tree_point',
+                'type':'circle',
+                'source':{
+                    type:'vector',
+                    url:'mapbox://faradayaway.7861vxxl' // After "mapbox://" paste your Mapbox tileset ID
+                },
+                'source-layer':'denver_tree_top_10_genus-01xbod', // name of tilesets
+                'layout':{
+                    'visibility': 'visible'
+                },
+                'paint': {
+                    // color circle by tree genus
+                    'circle-color':[
+                        'match',
+                        ['get', 'genus'],
+                        'Linden','#dce2b8',
+                        'Maple','#c76712',
+                        'Honeylocust','#f7d40e',
+                        'Crabapple','#bdf70e',
+                        'Oak','#1d6b0a',
+                        'Elm','#46291d',
+                        'Pine','#6a8947',
+                        'Ash','#8f8673',
+                        'Hackberry','#463677',
+                        'Spruce','#4079a0',
+                        '#ffff99', // default color 
+                    ],
+                    'circle-opacity':1,
+                    'circle-stroke-width':0.5,
+                    'circle-stroke-color':'#ffff99',          //points on the graph
+                    'circle-stroke-opacity':0.5,
+
+                    // Make circles larger as the user zooms from z12 to z22.
+                    'circle-radius':{
+                        'base':1.75,
+                        'stops': [
+                            [12, 2],
+                            [22, 150]
+                        ]
+                    }
+                }
+            });
+            
+            // add legend 
+            const TreeColorLegend = document.getElementById('treecolor-legend');
+            TreeColorLegend.style.display = 'block';
+
+        })
+
+</script>
+
+</body>
+</html>
